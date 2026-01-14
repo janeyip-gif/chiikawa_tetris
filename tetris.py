@@ -37,21 +37,21 @@ SIDEBAR_WIDTH = 150
 WINDOW_WIDTH = BOARD_WIDTH * CELL_SIZE + SIDEBAR_WIDTH
 WINDOW_HEIGHT = BOARD_HEIGHT * CELL_SIZE
 
-# Colors (RGB)
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-GRAY = (128, 128, 128)
-DARK_GRAY = (40, 40, 40)
+# Colors (RGB) - Chiikawa soft aesthetic
+BLACK = (245, 245, 245)        # Off-white (soft background)
+WHITE = (80, 80, 80)           # Dark gray (for text visibility)
+GRAY = (200, 200, 200)         # Light gray
+DARK_GRAY = (230, 230, 235)    # Very light gray
 
-# Tetromino colors (classic Tetris colors)
+# Tetromino colors (Chiikawa-themed soft pastels)
 COLORS = {
-    'I': (0, 255, 255),    # Cyan
-    'O': (255, 255, 0),    # Yellow
-    'T': (128, 0, 128),    # Purple
-    'S': (0, 255, 0),      # Green
-    'Z': (255, 0, 0),      # Red
-    'J': (0, 0, 255),      # Blue
-    'L': (255, 165, 0),    # Orange
+    'I': (173, 216, 230),  # Light blue (Chiikawa's soft blue)
+    'O': (255, 250, 205),  # Lemon chiffon (soft yellow)
+    'T': (221, 160, 221),  # Plum (soft purple/pink)
+    'S': (189, 252, 201),  # Mint green (soft green)
+    'Z': (255, 182, 193),  # Light pink (soft red/pink)
+    'J': (176, 196, 222),  # Light steel blue (soft blue)
+    'L': (255, 218, 185),  # Peach puff (soft orange)
 }
 
 # Game timing (milliseconds)
@@ -118,11 +118,12 @@ TETROMINOES = {
 class Piece:
     """Represents a falling Tetris piece."""
 
-    def __init__(self, piece_type: str):
+    def __init__(self, piece_type: str, image: Optional[pygame.Surface] = None):
         self.type = piece_type
         self.rotations = TETROMINOES[piece_type]
         self.rotation_index = 0
         self.color = COLORS[piece_type]
+        self.image = image
 
         # Starting position (top center of board)
         self.row = 0
@@ -159,9 +160,9 @@ class Board:
     """Represents the Tetris game board."""
 
     def __init__(self):
-        # Grid stores color tuples or None for empty cells
+        # Grid stores piece type strings or None for empty cells
         # grid[row][col], row 0 is top
-        self.grid: List[List[Optional[Tuple[int, int, int]]]] = [
+        self.grid: List[List[Optional[str]]] = [
             [None for _ in range(BOARD_WIDTH)]
             for _ in range(BOARD_HEIGHT)
         ]
@@ -184,7 +185,7 @@ class Board:
         """Lock a piece onto the board."""
         for row, col in piece.get_cells():
             if 0 <= row < BOARD_HEIGHT and 0 <= col < BOARD_WIDTH:
-                self.grid[row][col] = piece.color
+                self.grid[row][col] = piece.type
 
     def clear_lines(self) -> int:
         """Clear completed lines and return the number of lines cleared."""
@@ -205,7 +206,7 @@ class Board:
 
         return lines_cleared
 
-    def draw(self, surface: pygame.Surface) -> None:
+    def draw(self, surface: pygame.Surface, piece_images: dict = None) -> None:
         """Draw the board grid and locked pieces."""
         # Draw background
         board_rect = pygame.Rect(0, 0, BOARD_WIDTH * CELL_SIZE, BOARD_HEIGHT * CELL_SIZE)
@@ -222,12 +223,15 @@ class Board:
         # Draw locked pieces
         for row in range(BOARD_HEIGHT):
             for col in range(BOARD_WIDTH):
-                if self.grid[row][col] is not None:
-                    self._draw_cell(surface, row, col, self.grid[row][col])
+                piece_type = self.grid[row][col]
+                if piece_type is not None:
+                    color = COLORS[piece_type]
+                    image = piece_images.get(piece_type) if piece_images else None
+                    self._draw_cell(surface, row, col, color, image)
 
     def _draw_cell(self, surface: pygame.Surface, row: int, col: int,
-                   color: Tuple[int, int, int]) -> None:
-        """Draw a single cell with a 3D effect."""
+                   color: Tuple[int, int, int], image: Optional[pygame.Surface] = None) -> None:
+        """Draw a single cell with a 3D effect and optional character image."""
         x = col * CELL_SIZE
         y = row * CELL_SIZE
 
@@ -247,6 +251,12 @@ class Board:
         pygame.draw.line(surface, shadow, (x + CELL_SIZE - 2, y + 1),
                         (x + CELL_SIZE - 2, y + CELL_SIZE - 2))
 
+        # Draw character image centered on the cell
+        if image:
+            img_rect = image.get_rect()
+            img_rect.center = (x + CELL_SIZE // 2, y + CELL_SIZE // 2)
+            surface.blit(image, img_rect)
+
 
 # =============================================================================
 # GAME CLASS
@@ -257,12 +267,33 @@ class Game:
 
     def __init__(self):
         pygame.init()
-        pygame.display.set_caption("Tetris")
+        pygame.display.set_caption("Chiikawa Tetris")
 
         self.screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font(None, 36)
         self.small_font = pygame.font.Font(None, 24)
+
+        # Load Chiikawa character images
+        self.piece_images = {}
+        image_files = {
+            'I': 'images/chiikawa.png',
+            'O': 'images/hachiware.png',
+            'T': 'images/usagi.png',
+            'S': 'images/momonga.png',
+            'Z': 'images/kurimanju.png',
+            'J': 'images/armor.png',
+            'L': 'images/ramen.png',
+        }
+
+        for piece_type, filepath in image_files.items():
+            try:
+                img = pygame.image.load(filepath)
+                img = pygame.transform.smoothscale(img, (20, 20))
+                self.piece_images[piece_type] = img
+            except Exception as e:
+                print(f"Warning: Could not load {filepath}: {e}")
+                self.piece_images[piece_type] = None
 
         self.reset_game()
 
@@ -297,10 +328,12 @@ class Game:
     def spawn_piece(self) -> bool:
         """Spawn a new piece at the top. Returns False if game over."""
         if self.next_piece is None:
-            self.next_piece = Piece(self.get_next_piece_type())
+            piece_type = self.get_next_piece_type()
+            self.next_piece = Piece(piece_type, self.piece_images.get(piece_type))
 
         self.current_piece = self.next_piece
-        self.next_piece = Piece(self.get_next_piece_type())
+        piece_type = self.get_next_piece_type()
+        self.next_piece = Piece(piece_type, self.piece_images.get(piece_type))
 
         # Check if the spawn position is valid
         if not self.board.is_valid_position(self.current_piece.get_cells()):
@@ -475,7 +508,7 @@ class Game:
         self.screen.fill(DARK_GRAY)
 
         # Draw board
-        self.board.draw(self.screen)
+        self.board.draw(self.screen, self.piece_images)
 
         # Draw ghost piece
         if self.current_piece and not self.game_over:
@@ -492,7 +525,8 @@ class Game:
             for row, col in self.current_piece.get_cells():
                 if row >= 0:
                     self.board._draw_cell(self.screen, row, col,
-                                         self.current_piece.color)
+                                         self.current_piece.color,
+                                         self.current_piece.image)
 
         # Draw sidebar
         self._draw_sidebar()
@@ -540,8 +574,15 @@ class Game:
             for dr, dc in self.next_piece.rotations[0]:
                 x = preview_x + dc * 20
                 y = preview_y + dr * 20
+                # Draw colored background
                 rect = pygame.Rect(x, y, 18, 18)
                 pygame.draw.rect(self.screen, self.next_piece.color, rect)
+                # Draw character image if available
+                if self.next_piece.image:
+                    scaled_img = pygame.transform.smoothscale(self.next_piece.image, (16, 16))
+                    img_rect = scaled_img.get_rect()
+                    img_rect.center = (x + 9, y + 9)
+                    self.screen.blit(scaled_img, img_rect)
 
         # Controls help
         controls = [

@@ -1,39 +1,62 @@
-# Tetris
+# Chiikawa Tetris 🎮✨
 
-A classic Tetris game built with Python and Pygame.
+A classic Tetris game with a cute Chiikawa theme! Built with Python and Pygame, featuring soft pastel colors and adorable character sprites.
 
 ![Python](https://img.shields.io/badge/Python-3.x-blue.svg)
 ![Pygame](https://img.shields.io/badge/Pygame-2.x-green.svg)
 
-## Features
+## ✨ Features
 
 - Classic 10x20 Tetris board with visible grid
 - All 7 standard tetrominoes (I, O, T, S, Z, J, L)
+- **Chiikawa-themed pastel color scheme** 🌸
+- **Cute character images on each block** 🐱🐰
 - Ghost piece showing where the piece will land
-- Next piece preview
+- Next piece preview with character sprites
 - Score, level, and lines tracking
 - Increasing difficulty (faster drops at higher levels)
 - Pause functionality
 
-## Installation
+## 🎨 Chiikawa Theme
+
+Each Tetris piece features a different character:
+- **I piece** (Light Blue): Chiikawa
+- **O piece** (Soft Yellow): Hachiware
+- **T piece** (Soft Purple): Usagi
+- **S piece** (Mint Green): Momonga
+- **Z piece** (Light Pink): Kurimanju
+- **J piece** (Light Steel Blue): Armor-san
+- **L piece** (Peach): Ramen Master
+
+The game uses soft, pastel colors inspired by the Chiikawa aesthetic for a gentle, cute gaming experience!
+
+## 📦 Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/Kasincc/tetris.git
-   cd tetris
+   git clone https://github.com/janeyip-gif/chiikawa_tetris.git
+   cd chiikawa_tetris
    ```
 
 2. Install Pygame:
    ```bash
-   pip install pygame
+   pip3 install pygame
    ```
 
 3. Run the game:
    ```bash
-   python tetris.py
+   python3 tetris.py
    ```
 
-## Controls
+### 🖼️ Customizing Character Images
+
+The game comes with placeholder character images. To use your own Chiikawa character images:
+
+1. Replace the PNG files in the `images/` directory with your own 24x24 pixel images
+2. Make sure they have transparent backgrounds for the best effect
+3. Keep the same filenames: `chiikawa.png`, `hachiware.png`, `usagi.png`, `momonga.png`, `kurimanju.png`, `armor.png`, `ramen.png`
+
+## 🎮 Controls
 
 | Key | Action |
 |-----|--------|
@@ -46,7 +69,7 @@ A classic Tetris game built with Python and Pygame.
 | R | Restart (after game over) |
 | ESC | Quit |
 
-## Scoring
+## 🏆 Scoring
 
 - **Soft drop**: 1 point per cell
 - **Hard drop**: 2 points per cell
